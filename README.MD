@@ -1,4 +1,4 @@
-#permissions
+# permissions
 
 |type              |usage                         |
 |:-----------------|:-----------------------------|
@@ -6,6 +6,6 @@
 |identity.email    |detect whether signed in      |
 |declarativeContent|to make a rule for page action|
 
-#license
+# license
 
 MIT

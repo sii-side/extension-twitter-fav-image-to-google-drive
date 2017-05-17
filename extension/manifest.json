@@ -35,7 +35,7 @@
     ]
   },
   "permissions": [
-    "tabs", "identity", "identity.email", "declarativeContent"
+    "tabs", "identity", "identity.email", "declarativeContent", "https://www.googleapis.com/"
   ],
-  "content_security_policy": "connect-src https://www.googleapis.com; img-src https://*.twimg.com; script-src 'self'; object-src 'self'"
+  "content_security_policy": "connect-src www.googleapis.com; img-src *.twimg.com; script-src 'self'; object-src 'self'"
 }

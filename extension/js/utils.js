@@ -70,6 +70,7 @@ var saveToGoogleDrive = function saveToGoogleDrive(data, fileName, mimeType, cal
   }).then(function (token) {
     fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=' + token, {
       method: 'POST',
+      mode: 'cors',
       headers: {
         'content-type': 'multipart/related; boundary=' + BOUNDARY
       },
