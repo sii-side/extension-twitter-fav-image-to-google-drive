@@ -1,0 +1,41 @@
+{
+  "manifest_version": 2,
+  "name": "Twitter Liked-Image to Google Drive",
+  "version": "0.0.1",
+  "description": "Save tweet attached images into Google Drive automatically when marking Like.",
+  "author": "sii",
+  "icons": {
+    "16": "images/icon-16.png",
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  },
+  "page_action": {
+    "default_icon": {
+      "16": "images/icon-16.png",
+      "24": "images/icon-24.png",
+      "32": "images/icon-32.png"
+    },
+    "default_title": "T2GD",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["./js/background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://twitter.com/*"],
+      "js": ["./js/utils.js", "./js/content.js"]
+    }
+  ],
+  "oauth2": {
+    "client_id": "992889683502-ani6terrth2i165p1dfbq4er7bh7fkqi.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ]
+  },
+  "permissions": [
+    "tabs", "identity", "identity.email", "declarativeContent"
+  ],
+  "content_security_policy": "connect-src https://www.googleapis.com; img-src https://*.twimg.com; script-src 'self'; object-src 'self'"
+}
