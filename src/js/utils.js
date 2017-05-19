@@ -1,3 +1,7 @@
+//--------------------------------------------------
+// DOM関連
+//--------------------------------------------------
+
 /**
  * 自身を含む祖先要素のうち、指定されたclassをすべて持つ最初の要素（該当が無い場合はnull）を返す関数
  * @param {HTMLElement} node 始点となるノード
@@ -17,6 +21,31 @@ const getAncestorElementByClassName = function callee(node, ...classes) {
   //すべてのclassを持っており再帰がかからなかった場合はノードを返す
   return node;
 };
+
+/**
+ * 画像をData URIに変換
+ * @param {HTMLImageElement} imgObj 画像
+ * @param {string} mimeType 出力時のmimeType
+ */
+const imageToDataURL = (imgObj, mimeType) => {
+  /**
+   * @default image/png
+   */
+  mimeType = mimeType || 'image/png';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = imgObj.naturalWidth;
+  canvas.height = imgObj.naturalHeight;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(imgObj, 0, 0);
+
+  return canvas.toDataURL(mimeType);
+};
+
+//--------------------------------------------------
+// Chrome API関連
+//--------------------------------------------------
 
 /**
  * Background scriptにaccess tokenを要求
@@ -48,26 +77,9 @@ const requestUserInfo = callback => {
   });
 };
 
-/**
- * 画像をData URIに変換
- * @param {HTMLImageElement} imgObj 画像
- * @param {string} mimeType 出力時のmimeType
- */
-const imageToDataURL = (imgObj, mimeType) => {
-  /**
-   * @default image/png
-   */
-  mimeType = mimeType || 'image/png';
-
-  const canvas = document.createElement('canvas');
-  canvas.width = imgObj.naturalWidth;
-  canvas.height = imgObj.naturalHeight;
-
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(imgObj, 0, 0);
-
-  return canvas.toDataURL(mimeType);
-};
+//--------------------------------------------------
+// Google Drive関連
+//--------------------------------------------------
 
 /**
  * データをGoogle Driveに送信
@@ -95,7 +107,7 @@ ${data.substring(data.indexOf('base64,') + 7)}
       if (response.token) {
         resolve(response.token);
       } else {
-        reject('error');
+        reject('Error: Failed to get access token.');
       }
     });
   }).then(token => {
@@ -107,9 +119,13 @@ ${data.substring(data.indexOf('base64,') + 7)}
       },
       body: requestBody
     }).then(response => {
-      callback(response);
+      if (response.status === 200) {
+        callback(`Success: ${fileName} was uploaded.`);
+      } else {
+        callback(`Error: Failed to upload ${fileName}`);
+      }
     });
-  }, error => {
+  }).catch(error => {
     callback(error);
   });
 };

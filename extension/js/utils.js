@@ -18,6 +18,19 @@ var getAncestorElementByClassName = function callee(node) {
   return node;
 };
 
+var imageToDataURL = function imageToDataURL(imgObj, mimeType) {
+  mimeType = mimeType || 'image/png';
+
+  var canvas = document.createElement('canvas');
+  canvas.width = imgObj.naturalWidth;
+  canvas.height = imgObj.naturalHeight;
+
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(imgObj, 0, 0);
+
+  return canvas.toDataURL(mimeType);
+};
+
 var requestAuthorization = function requestAuthorization() {
   var isInteractive = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
   var callback = arguments[1];
@@ -42,19 +55,6 @@ var requestUserInfo = function requestUserInfo(callback) {
   });
 };
 
-var imageToDataURL = function imageToDataURL(imgObj, mimeType) {
-  mimeType = mimeType || 'image/png';
-
-  var canvas = document.createElement('canvas');
-  canvas.width = imgObj.naturalWidth;
-  canvas.height = imgObj.naturalHeight;
-
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(imgObj, 0, 0);
-
-  return canvas.toDataURL(mimeType);
-};
-
 var saveToGoogleDrive = function saveToGoogleDrive(data, fileName, mimeType, callback) {
   var BOUNDARY = 'hoge_fuga_piyo';
   var requestBody = '--' + BOUNDARY + '\nContent-Type: application/json; charset=UTF-8\n\n' + JSON.stringify({ name: fileName }) + '\n--' + BOUNDARY + '\nContent-Type: ' + mimeType + '\nContent-Transfer-Encoding: base64\n\n' + data.substring(data.indexOf('base64,') + 7) + '\n--' + BOUNDARY + '--';
@@ -64,7 +64,7 @@ var saveToGoogleDrive = function saveToGoogleDrive(data, fileName, mimeType, cal
       if (response.token) {
         resolve(response.token);
       } else {
-        reject('error');
+        reject('Error: Failed to get access token.');
       }
     });
   }).then(function (token) {
@@ -76,9 +76,13 @@ var saveToGoogleDrive = function saveToGoogleDrive(data, fileName, mimeType, cal
       },
       body: requestBody
     }).then(function (response) {
-      callback(response);
+      if (response.status === 200) {
+        callback('Success: ' + fileName + ' was uploaded.');
+      } else {
+        callback('Error: Failed to upload ' + fileName);
+      }
     });
-  }, function (error) {
+  }).catch(function (error) {
     callback(error);
   });
 };

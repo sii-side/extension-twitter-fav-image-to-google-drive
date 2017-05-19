@@ -15,11 +15,8 @@
         const tmpImg = new Image();
         tmpImg.crossOrigin = 'Anonymous';
         tmpImg.addEventListener('load', e => {
-          const data = imageToDataURL(tmpImg, mimeType);
-          saveToGoogleDrive(data, fileName, mimeType, response => {
-            if (response.status === 200) {
-              console.log('Saved successfully: ' + fileName);
-            }
+          saveToGoogleDrive(imageToDataURL(tmpImg, mimeType), fileName, mimeType, response => {
+            console.dir(response);
           });
         }, false);
         tmpImg.src = img.src;
