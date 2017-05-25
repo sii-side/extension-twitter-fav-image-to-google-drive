@@ -89,42 +89,110 @@ const requestUserInfo = callback => {
  * @param {function} callback 処理終了時のコールバック
  */
 const saveToGoogleDrive = (data, fileName, mimeType, callback) => {
+  const FOLDER_NAME = 'T2GD';
   const BOUNDARY = 'hoge_fuga_piyo';
-  const requestBody =
+  let token;
+
+  /**
+   * (1) トークン取得
+   * (2) ファイルリスト取得（フォルダID取得）
+   * (3) （必要なら）フォルダ作成
+   * (4) ファイル送信
+   */
+  //(1)
+  new Promise((resolve, reject) => {
+    console.log('Info: Started authorizing...');
+
+    requestAuthorization(false, response => {
+      if (response.token) {
+        console.log('Info: Succeeded authorizing. Access token is -> ' + response.token);
+        token = response.token;
+        resolve();
+      } else {
+        reject(new Error('Error: Failed to get access token.'));
+      }
+    });
+  //(2)
+  }).then(() => {
+    console.log('Info: Started getting file list...');
+
+    return fetch(`https://www.googleapis.com/drive/v3/files?access_token=${token}`, {
+      method: 'GET',
+      mode: 'cors'
+    });
+  }).then(response => {
+    if(response.status === 200) {
+      console.log('Info: Succeeded getting file list.');
+      return response.json();
+    } else {
+      throw new Error('Error: Failed to get file list.');
+    }
+  //(3)
+  }).then(json => {
+    return new Promise((resolve, reject) => {
+      const fileList = json.files.filter(file => {
+        return file.name === FOLDER_NAME && file.mimeType === 'application/vnd.google-apps.folder';
+      });
+
+      //既にTwitterフォルダが存在するのでidを渡す
+      if(fileList.length > 0) {
+        console.log('Info: Folder "T2GD" is already exist.');
+        resolve(fileList[0].id);
+      //Twitterフォルダが存在しないので新規作成しidを取得
+      } else {
+        console.log(`Info: Folder "${FOLDER_NAME}" is not exist. Creating a new folder...`);
+        fetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=${token}`, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'content-type': `multipart/related; boundary=${BOUNDARY}`
+          },
+          body:
 `--${BOUNDARY}
 Content-Type: application/json; charset=UTF-8
 
-${JSON.stringify({ name: fileName })}
---${BOUNDARY}
-Content-Type: ${mimeType}
-Content-Transfer-Encoding: base64
-
-${data.substring(data.indexOf('base64,') + 7)}
---${BOUNDARY}--`;
-
-  new Promise((resolve, reject) => {
-    requestAuthorization(false, response => {
-      if (response.token) {
-        resolve(response.token);
-      } else {
-        reject('Error: Failed to get access token.');
+${JSON.stringify({ name: FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })}
+--${BOUNDARY}--`
+        }).then(response => {
+          if (response.status === 200) {
+            console.log(`Info: Succeeded creating a new folder "${FOLDER_NAME}".`);
+            return response.json();
+          } else {
+            throw new Error('Error: Failed to create a new folder.');
+          }
+        }).then(fileInfo => {
+          resolve(fileInfo.id);
+        });
       }
     });
-  }).then(token => {
-    fetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=${token}`, {
+  //(4)
+  }).then(folderId => {
+    console.log('Info: Started sending file to Google Drive...');
+
+    return fetch(`https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&access_token=${token}`, {
       method: 'POST',
       mode: 'cors',
       headers: {
         'content-type': `multipart/related; boundary=${BOUNDARY}`
       },
-      body: requestBody
-    }).then(response => {
-      if (response.status === 200) {
-        callback(`Success: ${fileName} was uploaded.`);
-      } else {
-        callback(`Error: Failed to upload ${fileName}`);
-      }
+      body:
+`--${BOUNDARY}
+Content-Type: application/json; charset=UTF-8
+
+${JSON.stringify({ name: fileName, parents: [folderId] })}
+--${BOUNDARY}
+Content-Type: ${mimeType}
+Content-Transfer-Encoding: base64
+
+${data.substring(data.indexOf('base64,') + 7)}
+--${BOUNDARY}--`
     });
+  }).then(response => {
+    if (response.status === 200) {
+      callback(`Success: ${fileName} was uploaded.`);
+    } else {
+      throw new Error(`Error: Failed to upload ${fileName}`);
+    }
   }).catch(error => {
     callback(error);
   });
