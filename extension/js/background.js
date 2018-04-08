@@ -1,46 +1,98 @@
-'use strict';
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/js/background.ts");
+/******/ })
+/************************************************************************/
+/******/ ({
 
-(function () {
+/***/ "./src/js/background.ts":
+/*!******************************!*\
+  !*** ./src/js/background.ts ***!
+  \******************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-  chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.type === 'authorize') {
-      chrome.identity.getAuthToken({
-        interactive: request.interactive
-      }, function (token) {
-        if (token) {
-          sendResponse({
-            token: token
-          });
-        } else {
-          sendResponse('failed');
-        }
-      });
-    }
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _class_Chrome__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./class/Chrome */ \"./src/js/class/Chrome.ts\");\n\nvar chrome = new _class_Chrome__WEBPACK_IMPORTED_MODULE_0__[\"default\"]();\nchrome.background();\n\n\n//# sourceURL=webpack:///./src/js/background.ts?");
 
-    if (request.type === 'userinfo') {
-      chrome.identity.getProfileUserInfo(function (userInfo) {
-        sendResponse(userInfo);
-      });
-    }
+/***/ }),
 
-    return true;
-  });
+/***/ "./src/js/class/Chrome.ts":
+/*!********************************!*\
+  !*** ./src/js/class/Chrome.ts ***!
+  \********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-  new Promise(function (resolve) {
-    chrome.runtime.onInstalled.addListener(resolve);
-  }).then(function () {
-    return new Promise(function (resolve) {
-      chrome.declarativeContent.onPageChanged.removeRules(undefined, resolve);
-    });
-  }).then(function () {
-    chrome.declarativeContent.onPageChanged.addRules([{
-      conditions: [new chrome.declarativeContent.PageStateMatcher({
-        pageUrl: {
-          hostEquals: 'twitter.com',
-          schemes: ['https']
-        }
-      })],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
-    }]);
-  });
-})();
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\nvar Chrome = /** @class */ (function () {\n    function Chrome() {\n    }\n    Chrome.prototype.background = function () {\n        this.listener();\n        this.rule();\n    };\n    Chrome.prototype.request = function (type, callback) {\n        chrome.runtime.sendMessage({\n            type: type\n        }, function (response) {\n            if (typeof callback === 'function') {\n                callback(response);\n            }\n        });\n    };\n    Chrome.prototype.listener = function () {\n        var _this = this;\n        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {\n            if (typeof _this[request.type] === 'function') {\n                _this[request.type](sendResponse);\n            }\n            return true;\n        });\n    };\n    Chrome.prototype.authorize = function (sendResponse) {\n        chrome.identity.getAuthToken({\n            interactive: false\n        }, function (token) {\n            token ? sendResponse({ token: token }) : sendResponse('failed');\n        });\n    };\n    Chrome.prototype.userinfo = function (sendResponse) {\n        chrome.identity.getProfileUserInfo(function (userInfo) {\n            sendResponse(userInfo);\n        });\n    };\n    Chrome.prototype.rule = function () {\n        chrome.runtime.onInstalled.addListener(this.removeRule);\n    };\n    Chrome.prototype.removeRule = function () {\n        chrome.declarativeContent.onPageChanged.removeRules(undefined, this.addRule);\n    };\n    Chrome.prototype.addRule = function () {\n        chrome.declarativeContent.onPageChanged.addRules([{\n                conditions: [\n                    new chrome.declarativeContent.PageStateMatcher({\n                        pageUrl: {\n                            hostEquals: 'twitter.com',\n                            schemes: ['https']\n                        }\n                    })\n                ],\n                actions: [new chrome.declarativeContent.ShowPageAction()]\n            }]);\n    };\n    return Chrome;\n}());\n/* harmony default export */ __webpack_exports__[\"default\"] = (Chrome);\n\n\n//# sourceURL=webpack:///./src/js/class/Chrome.ts?");
+
+/***/ })
+
+/******/ });
