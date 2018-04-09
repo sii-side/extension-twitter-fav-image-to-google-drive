@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Twitter Liked-Image to Google Drive",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Save attached images to Google Drive automatically when marking Like on Twitter.",
   "author": "sii",
   "icons": {
